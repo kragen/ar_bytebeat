@@ -1,6 +1,5 @@
 #include <TVout.h>
 #include <fontALL.h>
-#include <EEPROM.h>
 #include "schematic.h"
 #include "TVOlogo.h"
 #include "wiring_private.h"
@@ -29,165 +28,37 @@ float cube3d[8][3] = {
 unsigned char cube2d[8][2];
 
 int t = 0;
-int i = 0;
+char i = 0;
 
-const int MARIPOSA_SIZE = 131;
-char mariposa[MARIPOSA_SIZE];
-char *sample_pointer = mariposa;
+const int BUFFER_SIZE = 64;
+char buffer[BUFFER_SIZE];
+char *sample_pointer = buffer;
 
 void our_hbi_hook() {
-  return; 
-  
   if (++i != 2) return;
   i = 0;
   t++;
   
   //  analogWrite(11, );
   //   analogWrite(11, 255);
+  // OCR2A = t & (t >> 8); // works with long
+  OCR2A = t*(((t>>12)|(t>>8))&(63&(t>>4))); // works with int but not long
+  // OCR2A = t ^ t % 255;		// doesn't even work with int. 
+  //OCR2A = (t*5&t>>7)|(t*3&t>>10); // works with int but not long.
+  // Nice and rhythmic and interesting, but doesn't even work with int:
+  //OCR2A = (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
   //OCR2A = 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10); // t & t >> 8; // set pwm duty
-  OCR2A = *sample_pointer++;
-  if (sample_pointer == mariposa + MARIPOSA_SIZE) {
-    sample_pointer = mariposa;
-  }
+  //OCR2A = *sample_pointer++;
+  // sample_pointer++;
+  // if (sample_pointer == buffer + BUFFER_SIZE) {
+  //   sample_pointer = buffer;
+  // }
 }
 
 void setup() {
-
-  //  mariposa[0] = 0;
-//   mariposa[1] = 0;
-//   mariposa[2] = 0;
-//   mariposa[3] = 0;
-//   mariposa[4] = 0;
-//   mariposa[5] = 0;
-//   mariposa[6] = 0;
-//   mariposa[7] = 0;
-//   mariposa[8] = 0;
-//   mariposa[9] = 0;
-//   mariposa[10] = 0;
-//   mariposa[11] = 0;
-//   mariposa[12] = 0;
-//   mariposa[13] = 0;
-//   mariposa[14] = 0;
-//   mariposa[15] = 0;
-//   mariposa[16] = 0;
-//   mariposa[17] = 0;
-//   mariposa[18] = 0;
-//   mariposa[19] = 0;
-//   mariposa[20] = 0;
-//   mariposa[21] = 0;
-//   mariposa[22] = 0;
-//   mariposa[23] = 0;
-//   mariposa[24] = 0;
-//   mariposa[25] = 0;
-//   mariposa[26] = 0;
-//   mariposa[27] = 0;
-//   mariposa[28] = 0;
-//   mariposa[29] = 0;
-//   mariposa[30] = 0;
-//   mariposa[31] = 0;
-//   mariposa[32] = 0;
-//   mariposa[33] = 0;
-//   mariposa[34] = 0;
-//   mariposa[35] = 0;
-//   mariposa[36] = 0;
-//   mariposa[37] = 0;
-//   mariposa[38] = 0;
-//   mariposa[39] = 0;
-//   mariposa[40] = 0;
-//   mariposa[41] = 0;
-//   mariposa[42] = 0;
-//   mariposa[43] = 0;
-//   mariposa[44] = 0;
-//   mariposa[45] = 0;
-//   mariposa[46] = 0;
-//   mariposa[47] = 0;
-//   mariposa[48] = 0;
-//   mariposa[49] = 0;
-//   mariposa[50] = 0;
-//   mariposa[51] = 0;
-//   mariposa[52] = 0;
-//   mariposa[53] = 0;
-//   mariposa[54] = 0;
-//   mariposa[55] = 0;
-//   mariposa[56] = 0;
-//   mariposa[57] = 0;
-//   mariposa[58] = 0;
-//   mariposa[59] = 0;
-//   mariposa[60] = 0;
-//   mariposa[61] = 0;
-//   mariposa[62] = 0;
-//   mariposa[63] = 0;
-//   mariposa[64] = 0;
-//   mariposa[65] = 0;
-//   mariposa[66] = 0;
-//   mariposa[67] = 0;
-//   mariposa[68] = 0;
-//   mariposa[69] = 0;
-//   mariposa[70] = 0;
-//   mariposa[71] = 0;
-//   mariposa[72] = 0;
-//   mariposa[73] = 0;
-//   mariposa[74] = 0;
-//   mariposa[75] = 0;
-//   mariposa[76] = 0;
-//   mariposa[77] = 0;
-//   mariposa[78] = 0;
-//   mariposa[79] = 0;
-//   mariposa[80] = 0;
-//   mariposa[81] = 0;
-//   mariposa[82] = 0;
-//   mariposa[83] = 0;
-//   mariposa[84] = 0;
-//   mariposa[85] = 0;
-//   mariposa[86] = 0;
-//   mariposa[87] = 0;
-//   mariposa[88] = 0;
-//   mariposa[89] = 0;
-//   mariposa[90] = 0;
-//   mariposa[91] = 0;
-//   mariposa[92] = 0;
-//   mariposa[93] = 0;
-//   mariposa[94] = 0;
-//   mariposa[95] = 0;
-//   mariposa[96] = 0;
-//   mariposa[97] = 0;
-//   mariposa[98] = 0;
-//   mariposa[99] = 0;
-//   mariposa[100] = 0;
-//   mariposa[101] = 0;
-//   mariposa[102] = 0;
-//   mariposa[103] = 0;
-//   mariposa[104] = 0;
-//   mariposa[105] = 0;
-//   mariposa[106] = 0;
-//   mariposa[107] = 0;
-//   mariposa[108] = 0;
-//   mariposa[109] = 0;
-//   mariposa[110] = 0;
-//   mariposa[111] = 0;
-//   mariposa[112] = 0;
-//   mariposa[113] = 0;
-//   mariposa[114] = 0;
-//   mariposa[115] = 0;
-//   mariposa[116] = 0;
-//   mariposa[117] = 0;
-//   mariposa[118] = 0;
-//   mariposa[119] = 0;
-//   mariposa[120] = 0;
-//   mariposa[121] = 0;
-//   mariposa[122] = 0;
-//   mariposa[123] = 0;
-//   mariposa[124] = 0;
-//   mariposa[125] = 0;
-//   mariposa[126] = 0;
-//   mariposa[127] = 0;
-//   mariposa[128] = 0;
-//   mariposa[129] = 0;
-//   mariposa[130] = 0;
-
-  for (int t = 0; t < MARIPOSA_SIZE; t++) {
-    // mariposa[t] = 0;
-    //mariposa[t] = 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | t >> 10);
+  for (int t = 0; t < BUFFER_SIZE; t++) {
+    // buffer[t] = 0;
+    //buffer[t] = 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | t >> 10);
   }
   
   // audio insert
@@ -203,8 +74,19 @@ void setup() {
   TV.begin(NTSC,120,96);
   TV.select_font(font6x8);
   intro();
-  TV.println("I am the TVout\nlibrary running on a freeduino\n");
+  TV.println("I am the TVout\nlibrary running on a Duemilanove\n");
   TV.delay(2500);
+
+  for (int t = 0; t < BUFFER_SIZE; t++) {
+    TV.print(buffer[t], 16);
+    TV.print(' ');
+    //Serial.print('!');
+    //TV.print(' ');
+    //Serial.print(buffer[t], HEX); 
+    //Serial.print(' ');
+  }
+  //Serial.print('\n');
+
   TV.println("I generate a PAL\nor NTSC composite  video using\ninterrupts\n");
   TV.delay(2500);
   TV.println("My schematic:");
