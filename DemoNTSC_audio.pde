@@ -27,32 +27,41 @@ float cube3d[8][3] = {
 };
 unsigned char cube2d[8][2];
 
-int t = 0;
+long t = 0;
 char i = 0;
 
-const int BUFFER_SIZE = 64;
+const int BUFFER_SIZE = 32;
 char buffer[BUFFER_SIZE];
 char *sample_pointer = buffer;
 
 void our_hbi_hook() {
   if (++i != 2) return;
   i = 0;
-  t++;
+  //t++;
   
   //  analogWrite(11, );
   //   analogWrite(11, 255);
   // OCR2A = t & (t >> 8); // works with long
-  OCR2A = t*(((t>>12)|(t>>8))&(63&(t>>4))); // works with int but not long
+  //OCR2A = t*(((t>>12)|(t>>8))&(63&(t>>4))); // works with int but not long
   // OCR2A = t ^ t % 255;		// doesn't even work with int. 
   //OCR2A = (t*5&t>>7)|(t*3&t>>10); // works with int but not long.
   // Nice and rhythmic and interesting, but doesn't even work with int:
   //OCR2A = (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
   //OCR2A = 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10); // t & t >> 8; // set pwm duty
-  //OCR2A = *sample_pointer++;
-  // sample_pointer++;
-  // if (sample_pointer == buffer + BUFFER_SIZE) {
-  //   sample_pointer = buffer;
-  // }
+  OCR2A = *sample_pointer++;
+  //sample_pointer++;
+  if (sample_pointer == buffer + BUFFER_SIZE) {
+    sample_pointer = buffer;
+  }
+}
+
+void our_vbi_hook() {
+  for (int j = 0; j < BUFFER_SIZE; j++) {
+    buffer[j] = //t*(((t>>12)|(t>>8))&(63&(t>>4)));
+      (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
+    t++;
+  }
+  t += 128 - BUFFER_SIZE;
 }
 
 void setup() {
@@ -64,6 +73,7 @@ void setup() {
   // audio insert
   pinMode(11, OUTPUT);
   TV.set_hbi_hook(&our_hbi_hook);
+  TV.set_vbi_hook(&our_vbi_hook);
   
   // connect pwm to pin on timer 2
   sbi(TCCR2A, COM2A1);
@@ -78,7 +88,7 @@ void setup() {
   TV.delay(2500);
 
   for (int t = 0; t < BUFFER_SIZE; t++) {
-    TV.print(buffer[t], 16);
+    TV.print(((unsigned char*)buffer)[t], 16);
     TV.print(' ');
     //Serial.print('!');
     //TV.print(' ');
@@ -86,6 +96,7 @@ void setup() {
     //Serial.print(' ');
   }
   //Serial.print('\n');
+  TV.delay(10000);
 
   TV.println("I generate a PAL\nor NTSC composite  video using\ninterrupts\n");
   TV.delay(2500);
