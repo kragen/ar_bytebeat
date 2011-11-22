@@ -30,7 +30,7 @@ unsigned char cube2d[8][2];
 long t = 0;
 char i = 0;
 
-const int BUFFER_SIZE = 32;
+const int BUFFER_SIZE = 131;
 char buffer[BUFFER_SIZE];
 char *sample_pointer = buffer;
 
@@ -61,7 +61,7 @@ void our_vbi_hook() {
       (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
     t++;
   }
-  t += 128 - BUFFER_SIZE;
+  if (BUFFER_SIZE < 128) t += 128 - BUFFER_SIZE;
 }
 
 void setup() {
@@ -81,7 +81,7 @@ void setup() {
 
   
   /////////////////////////
-  TV.begin(NTSC,120,96);
+  TV.begin(NTSC,120,86);
   TV.select_font(font6x8);
   intro();
   TV.println("I am the TVout\nlibrary running on a Duemilanove\n");
