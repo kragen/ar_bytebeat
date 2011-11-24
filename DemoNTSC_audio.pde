@@ -93,6 +93,7 @@ void setup() {
   for (int t = 0; t < BUFFER_SIZE; t++) {
     TV.print(((unsigned char*)buffer)[t], 16);
     TV.print(' ');
+    TV.print(buffer);
     //Serial.print('!');
     //TV.print(' ');
     //Serial.print(buffer[t], HEX); 
@@ -198,6 +199,8 @@ void loop() {
       }
       break;
   }
+    
+ 
 }
 
 void intro() {
@@ -286,4 +289,5 @@ void draw_cube() {
   TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[6][0],cube2d[6][1],WHITE);
   TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[3][0],cube2d[3][1],WHITE);
   TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[5][0],cube2d[5][1],WHITE);
+  TV.print(buffer);
 }
