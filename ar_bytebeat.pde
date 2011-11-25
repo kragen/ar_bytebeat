@@ -3,7 +3,6 @@
 #include "schematic.h"
 #include "TVOlogo.h"
 #include "wiring_private.h"
-#include "pins_arduino.h"
 #undef round
 
 TVout TV;
@@ -37,19 +36,15 @@ char *sample_pointer = buffer;
 void our_hbi_hook() {
   if (++i != 2) return;
   i = 0;
-  //t++;
   
-  //  analogWrite(11, );
-  //   analogWrite(11, 255);
   // OCR2A = t & (t >> 8); // works with long
-  //OCR2A = t*(((t>>12)|(t>>8))&(63&(t>>4))); // works with int but not long
+  // OCR2A = t*(((t>>12)|(t>>8))&(63&(t>>4))); // works with int but not long
   // OCR2A = t ^ t % 255;		// doesn't even work with int. 
-  //OCR2A = (t*5&t>>7)|(t*3&t>>10); // works with int but not long.
+  // OCR2A = (t*5&t>>7)|(t*3&t>>10); // works with int but not long.
   // Nice and rhythmic and interesting, but doesn't even work with int:
-  //OCR2A = (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
-  //OCR2A = 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10); // t & t >> 8; // set pwm duty
+  // OCR2A = (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
+  // OCR2A = 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10); // t & t >> 8; // set pwm duty
   OCR2A = *sample_pointer++;
-  //sample_pointer++;
   if (sample_pointer == buffer + BUFFER_SIZE) {
     sample_pointer = buffer;
   }
@@ -72,12 +67,7 @@ void our_vbi_hook() {
 }
 
 void setup() {
-  for (int t = 0; t < BUFFER_SIZE; t++) {
-    // buffer[t] = 0;
-    //buffer[t] = 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | t >> 10);
-  }
-  
-  // audio insert
+  // audio setup
   pinMode(11, OUTPUT);
   TV.set_hbi_hook(&our_hbi_hook);
   TV.set_vbi_hook(&our_vbi_hook);
@@ -86,7 +76,6 @@ void setup() {
   sbi(TCCR2A, COM2A1);
   TCCR2B = TCCR2B & 0xf8 | 0x01; // no prescaling on clock select
 
-  
   /////////////////////////
   TV.begin(NTSC,120,86);
   TV.select_font(font6x8);
@@ -98,12 +87,7 @@ void setup() {
     TV.print(((unsigned char*)buffer)[t], 16);
     TV.print(' ');
     TV.print(buffer);
-    //Serial.print('!');
-    //TV.print(' ');
-    //Serial.print(buffer[t], HEX); 
-    //Serial.print(' ');
   }
-  //Serial.print('\n');
   TV.delay(10000);
 
   TV.println("I generate a PAL\nor NTSC composite  video using\ninterrupts\n");
@@ -159,8 +143,6 @@ void setup() {
   TV.delay(2000);
   
   randomSeed(analogRead(0));
-  
-
 }
 
 void loop() {
@@ -203,12 +185,10 @@ void loop() {
       }
       break;
   }
-    
- 
 }
 
 void intro() {
-unsigned char w,l,wb;
+  unsigned char w,l,wb;
   int index;
   w = pgm_read_byte(TVOlogo);
   l = pgm_read_byte(TVOlogo+1);
