@@ -50,11 +50,32 @@ void our_hbi_hook() {
   }
 }
 
+// This stays interesting for ten minutes or so at least:
+static inline char phase_rhythm() {
+  unsigned ut = unsigned(t);
+  char t1 = char(ut) << 1;
+  unsigned t7 = ut >> 7;
+  long t12 = t >> 12;
+  return (t1 ^ (t1 + t7 & t12)) | ut >> (4 - (1 ^ 7 & char(t12 >> 7))) | t7;
+}
+
 void our_vbi_hook() {
   for (int j = 0; j < BUFFER_SIZE; j++) {
     buffer[j] = //t*(((t>>12)|(t>>8))&(63&(t>>4)));
-      (((((t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1) & t>>12) ^ t>>16) & 255) >> 1
-      | ((t<<1&t>>9|t+1023>>9) & 255) >> 1;
+      // this works okay and has an interesting rhythm, but I
+      // wonder if it may be better off without the second line
+      // and corresponding mixing:
+      // (((((t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1) & t>>12) ^ t>>16) & 255)
+      // >> 1 | ((t<<1&t>>9|t+1023>>9) & 255) >> 1
+      // ;
+      // This innocent-looking formula screwed up the vertical hold
+      // something terrible sometimes!  I added char() hoping
+      // it would help, and I think it finally did.  Should repeat
+      // after about 4 hours.  Too bad it sounds terrible.
+      // char(char(t)<<(7&(t>>12)))+(t<<1)&t>>9|t+(t>>10)>>9;
+      // This is a microcontroller-friendly way to do t^t%255:
+      // t ^ (char(t) + char(int(t) >> 8));
+      // phase_rhythm();
       // one of these two branches is too slow with longs:
       // ((t&4096)?((t*(t^t%255)|(t>>4))>>1):(t>>3)|((t&8192)?t<<2:t));
       // this one is still too slow:
@@ -62,6 +83,11 @@ void our_vbi_hook() {
       // This one works with the new version of Arduino on the NAML
       // machine, but not the old version on inexorable.
       // 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10);
+      // Explore the space of all possible 8-beat rhythms in less than an hour.
+      // It has some minor vsync problems.
+      // (t<<1 ^ (t + (t >> 8))) | t >> 2 | (char(t>>15^t>>16^0x75)>>(7&t>>10)&1?0:-1);
+      // The same rhythm generator, with Ryg's Chaos Theory melody instead:
+      t*2*(char((t>>10)^(t>>10)-2)%11) | t >> 2 | (char(t>>15^t>>16^0x75)>>(7&t>>10)&1?0:-1);
     t++;
   }
   if (BUFFER_SIZE < 128) t += 128 - BUFFER_SIZE;
