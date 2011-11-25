@@ -54,7 +54,7 @@ void our_hbi_hook() {
 // and repeats about every twenty:
 static inline char phase_rhythm() {
   // unoptimized formula:
-  // ((t<<1) ^ ((t<<1) + (t>>7) & t >> 12)) | t >> (4 - (t >> 19)) | t >> 7
+  // ((t<<1)^((t<<1)+(t>>7)&t>>12))|t>>(4-(1^7&(t>>19)))|t>>7
   unsigned ut = unsigned(t);
   char t1 = char(ut) << 1;
   unsigned t7 = ut >> 7;
