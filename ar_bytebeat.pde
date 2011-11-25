@@ -58,10 +58,14 @@ void our_hbi_hook() {
 void our_vbi_hook() {
   for (int j = 0; j < BUFFER_SIZE; j++) {
     buffer[j] = //t*(((t>>12)|(t>>8))&(63&(t>>4)));
-      // (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
+      (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
+      // one of these two branches is too slow with longs:
+      // ((t&4096)?((t*(t^t%255)|(t>>4))>>1):(t>>3)|((t&8192)?t<<2:t));
       // this one is still too slow:
       //255-((1L<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10);
-      255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10);
+      // This one works with the new version of Arduino on the NAML
+      // machine, but not the old version on inexorable.
+      // 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10);
     t++;
   }
   if (BUFFER_SIZE < 128) t += 128 - BUFFER_SIZE;
