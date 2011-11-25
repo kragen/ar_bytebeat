@@ -50,8 +50,11 @@ void our_hbi_hook() {
   }
 }
 
-// This stays interesting for ten minutes or so at least:
+// This stays interesting for ten minutes or so at least,
+// and repeats about every twenty:
 static inline char phase_rhythm() {
+  // unoptimized formula:
+  // ((t<<1) ^ ((t<<1) + (t>>7) & t >> 12)) | t >> (4 - (t >> 19)) | t >> 7
   unsigned ut = unsigned(t);
   char t1 = char(ut) << 1;
   unsigned t7 = ut >> 7;
@@ -81,7 +84,7 @@ void our_vbi_hook() {
       // this one is still too slow:
       //255-((1L<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10);
       // This one works with the new version of Arduino on the NAML
-      // machine, but not the old version on inexorable.
+      // machine, but not the old version on inexorable; too slow!
       // 255-((1<<28)/(1+(t^0x5800)%0x8000) ^ t | t >> 4 | -t >> 10);
       // Explore the space of all possible 8-beat rhythms in less than an hour.
       // It has some minor vsync problems.
