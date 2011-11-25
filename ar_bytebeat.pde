@@ -53,7 +53,7 @@ void our_hbi_hook() {
 void our_vbi_hook() {
   for (int j = 0; j < BUFFER_SIZE; j++) {
     buffer[j] = //t*(((t>>12)|(t>>8))&(63&(t>>4)));
-      (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
+      (((t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1) & t>>12) ^ t>>16;
       // one of these two branches is too slow with longs:
       // ((t&4096)?((t*(t^t%255)|(t>>4))>>1):(t>>3)|((t&8192)?t<<2:t));
       // this one is still too slow:
