@@ -109,7 +109,7 @@ void setup() {
   TV.bitmap(0,0,schematic);
   TV.delay(10000);
   TV.clear_screen();
-  TV.println("Lets see what\nwhat I can do");
+  TV.println("Lets see\nwhat I can do");
   TV.delay(2000);
   
   //fonts
