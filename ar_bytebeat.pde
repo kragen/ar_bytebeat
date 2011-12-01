@@ -7,25 +7,6 @@
 
 TVout TV;
 
-int zOff = 150;
-int xOff = 0;
-int yOff = 0;
-int cSize = 50;
-int view_plane = 64;
-float angle = PI/60;
-
-float cube3d[8][3] = {
-  {xOff - cSize,yOff + cSize,zOff - cSize},
-  {xOff + cSize,yOff + cSize,zOff - cSize},
-  {xOff - cSize,yOff - cSize,zOff - cSize},
-  {xOff + cSize,yOff - cSize,zOff - cSize},
-  {xOff - cSize,yOff + cSize,zOff + cSize},
-  {xOff + cSize,yOff + cSize,zOff + cSize},
-  {xOff - cSize,yOff - cSize,zOff + cSize},
-  {xOff + cSize,yOff - cSize,zOff + cSize}
-};
-unsigned char cube2d[8][2];
-
 long t = 0;
 char i = 0;
 
@@ -155,7 +136,7 @@ void our_vbi_hook() {
       // char(char(t)<<(7&(t>>12)))+(t<<1)&t>>9|t+(t>>10)>>9;
       // This is a microcontroller-friendly way to do t^t%255:
       // t ^ (char(t) + char(int(t) >> 8));
-      // phase_rhythm();
+      phase_rhythm();
       // one of these two branches is too slow with longs:
       // ((t&4096)?((t*(t^t%255)|(t>>4))>>1):(t>>3)|((t&8192)?t<<2:t));
       // this one is still too slow:
@@ -167,11 +148,14 @@ void our_vbi_hook() {
       // It has some minor vsync problems.
       // (t<<1 ^ (t + (t >> 8))) | t >> 2 | (char(t>>15^t>>16^0x75)>>(7&t>>10)&1?0:-1);
       // The same rhythm generator, with Ryg's Chaos Theory melody instead:
-      t*2*(char((t>>10)^(t>>10)-2)%11) | t >> 2 | (char(t>>15^t>>16^0x75)>>(7&t>>10)&1?0:-1);
+      // t*2*(char((t>>10)^(t>>10)-2)%11) | t >> 2 | (char(t>>15^t>>16^0x75)>>(7&t>>10)&1?0:-1);
     t++;
   }
   if (BUFFER_SIZE < 128) t += 128 - BUFFER_SIZE;
 }
+
+const int height = 86;
+const int width = 120;
 
 void setup() {
   // audio setup
@@ -184,58 +168,22 @@ void setup() {
   TCCR2B = TCCR2B & 0xf8 | 0x01; // no prescaling on clock select
 
   /////////////////////////
-  TV.begin(NTSC,120,86);
+  TV.begin(NTSC, width, height);
   TV.select_font(font6x8);
   intro();
   
-  //random cube forever.
-  TV.clear_screen();
-  TV.print(16,40,"Random Cube");
-  TV.print(28,48,"Rotation");
-  TV.delay(2000);
-  
-  randomSeed(analogRead(0));
 }
 
 void loop() {
-  int rsteps = random(10,60);
-  switch(random(6)) {
-    case 0:
-      for (int i = 0; i < rsteps; i++) {
-        zrotate(angle);
-        printcube();
-      }
-      break;
-    case 1:
-      for (int i = 0; i < rsteps; i++) {
-        zrotate(2*PI - angle);
-        printcube();
-      }
-      break;
-    case 2:
-      for (int i = 0; i < rsteps; i++) {
-        xrotate(angle);
-        printcube();
-      }
-      break;
-    case 3:
-      for (int i = 0; i < rsteps; i++) {
-        xrotate(2*PI - angle);
-        printcube();
-      }
-      break;
-    case 4:
-      for (int i = 0; i < rsteps; i++) {
-        yrotate(angle);
-        printcube();
-      }
-      break;
-    case 5:
-      for (int i = 0; i < rsteps; i++) {
-        yrotate(2*PI - angle);
-        printcube();
-      }
-      break;
+  //TV.clear_screen();
+
+  TV.print(sample_pointer - buffer);
+  TV.print(' ');
+  TV.print(int(samples_spat_out_by_asm));
+  TV.print(' ');
+
+  for (char i = 10; i < height; i++) {
+    TV.fill_line(i, width/2 - buffer[i]/8, width/2 + buffer[i]/8, 1);
   }
 }
 
@@ -260,74 +208,4 @@ void intro() {
   }
   TV.delay(3000);
   TV.clear_screen();
-}
-
-void printcube() {
-  //calculate 2d points
-  for(byte i = 0; i < 8; i++) {
-    cube2d[i][0] = (unsigned char)((cube3d[i][0] * view_plane / cube3d[i][2]) + (TV.hres()/2));
-    cube2d[i][1] = (unsigned char)((cube3d[i][1] * view_plane / cube3d[i][2]) + (TV.vres()/2));
-  }
-  TV.delay_frame(1);
-  TV.clear_screen();
-  draw_cube();
-}
-
-void zrotate(float q) {
-  float tx,ty,temp;
-  for(byte i = 0; i < 8; i++) {
-    tx = cube3d[i][0] - xOff;
-    ty = cube3d[i][1] - yOff;
-    temp = tx * cos(q) - ty * sin(q);
-    ty = tx * sin(q) + ty * cos(q);
-    tx = temp;
-    cube3d[i][0] = tx + xOff;
-    cube3d[i][1] = ty + yOff;
-  }
-}
-
-void yrotate(float q) {
-  float tx,tz,temp;
-  for(byte i = 0; i < 8; i++) {
-    tx = cube3d[i][0] - xOff;
-    tz = cube3d[i][2] - zOff;
-    temp = tz * cos(q) - tx * sin(q);
-    tx = tz * sin(q) + tx * cos(q);
-    tz = temp;
-    cube3d[i][0] = tx + xOff;
-    cube3d[i][2] = tz + zOff;
-  }
-}
-
-void xrotate(float q) {
-  float ty,tz,temp;
-  for(byte i = 0; i < 8; i++) {
-    ty = cube3d[i][1] - yOff;
-    tz = cube3d[i][2] - zOff;
-    temp = ty * cos(q) - tz * sin(q);
-    tz = ty * sin(q) + tz * cos(q);
-    ty = temp;
-    cube3d[i][1] = ty + yOff;
-    cube3d[i][2] = tz + zOff;
-  }
-}
-
-void draw_cube() {
-  TV.draw_line(cube2d[0][0],cube2d[0][1],cube2d[1][0],cube2d[1][1],WHITE);
-  TV.draw_line(cube2d[0][0],cube2d[0][1],cube2d[2][0],cube2d[2][1],WHITE);
-  TV.draw_line(cube2d[0][0],cube2d[0][1],cube2d[4][0],cube2d[4][1],WHITE);
-  TV.draw_line(cube2d[1][0],cube2d[1][1],cube2d[5][0],cube2d[5][1],WHITE);
-  TV.draw_line(cube2d[1][0],cube2d[1][1],cube2d[3][0],cube2d[3][1],WHITE);
-  TV.draw_line(cube2d[2][0],cube2d[2][1],cube2d[6][0],cube2d[6][1],WHITE);
-  TV.draw_line(cube2d[2][0],cube2d[2][1],cube2d[3][0],cube2d[3][1],WHITE);
-  TV.draw_line(cube2d[4][0],cube2d[4][1],cube2d[6][0],cube2d[6][1],WHITE);
-  TV.draw_line(cube2d[4][0],cube2d[4][1],cube2d[5][0],cube2d[5][1],WHITE);
-  TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[6][0],cube2d[6][1],WHITE);
-  TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[3][0],cube2d[3][1],WHITE);
-  TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[5][0],cube2d[5][1],WHITE);
-  //TV.print(buffer);
-  TV.print(sample_pointer - buffer);
-  TV.print(' ');
-  TV.print(int(samples_spat_out_by_asm));
-  TV.print(' ');
 }
