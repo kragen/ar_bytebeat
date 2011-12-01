@@ -187,61 +187,6 @@ void setup() {
   TV.begin(NTSC,120,86);
   TV.select_font(font6x8);
   intro();
-  TV.println("I am the TVout\nlibrary running on a Duemilanove\n");
-  TV.delay(2500);
-
-  for (int t = 0; t < BUFFER_SIZE; t++) {
-    TV.print(((unsigned char*)buffer)[t], 16);
-    TV.print(' ');
-    TV.print(buffer);
-  }
-  TV.delay(10000);
-
-  TV.println("I generate a PAL\nor NTSC composite  video using\ninterrupts\n");
-  TV.delay(2500);
-  TV.println("My schematic:");
-  TV.delay(1500);
-  TV.bitmap(0,0,schematic);
-  TV.delay(10000);
-  TV.clear_screen();
-  TV.println("Lets see\nwhat I can do");
-  TV.delay(2000);
-  
-  //fonts
-  TV.clear_screen();
-  TV.print(0,0,"Multiple fonts:\r\n");
-  TV.select_font(font4x6);
-  TV.println("4x6 font FONT");
-  TV.select_font(font6x8);
-  TV.println("6x8 font FONT");
-  TV.select_font(font8x8);
-  TV.println("8x8 font FONT");
-  TV.select_font(font6x8);
-  TV.delay(2000);
-  
-  TV.clear_screen();
-  TV.print(9,44,"Draw Basic Shapes");
-  TV.delay(2000);
-  
-  //circles
-  TV.clear_screen();
-  TV.draw_circle(TV.hres()/2,TV.vres()/2,TV.vres()/3,WHITE);
-  TV.delay(500);
-  TV.draw_circle(TV.hres()/2,TV.vres()/2,TV.vres()/2,WHITE,INVERT);
-  TV.delay(2000);
-  
-  //rectangles and lines
-  TV.clear_screen();
-  TV.draw_rect(20,20,80,56,WHITE);
-  TV.delay(500);
-  TV.draw_rect(10,10,100,76,WHITE,INVERT);
-  TV.delay(500);
-  TV.draw_line(60,20,60,76,INVERT);
-  TV.draw_line(20,48,100,48,INVERT);
-  TV.delay(500);
-  TV.draw_line(10,10,110,86,INVERT);
-  TV.draw_line(10,86,110,10,INVERT);
-  TV.delay(2000);
   
   //random cube forever.
   TV.clear_screen();
@@ -380,5 +325,9 @@ void draw_cube() {
   TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[6][0],cube2d[6][1],WHITE);
   TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[3][0],cube2d[3][1],WHITE);
   TV.draw_line(cube2d[7][0],cube2d[7][1],cube2d[5][0],cube2d[5][1],WHITE);
-  TV.print(buffer);
+  //TV.print(buffer);
+  TV.print(sample_pointer - buffer);
+  TV.print(' ');
+  TV.print(int(samples_spat_out_by_asm));
+  TV.print(' ');
 }
