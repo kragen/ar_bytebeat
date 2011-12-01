@@ -33,6 +33,11 @@ const int BUFFER_SIZE = 131;
 char buffer[BUFFER_SIZE];
 char *sample_pointer = buffer;
 
+// a place to stick a number to debug with
+char samples_spat_out_by_asm;
+
+#if 0
+
 void our_hbi_hook() {
   if (++i != 2) return;
   i = 0;
@@ -49,6 +54,78 @@ void our_hbi_hook() {
     sample_pointer = buffer;
   }
 }
+
+#else
+
+// The assembly routine that we execute before each video line to spit out
+// a sample.
+// You'd think you'd want to make this __attribute__(bare) or whatever.
+// But it turns out that the only stupidity added is an extra RET at the end.
+void our_hbi_hook()
+{
+  asm volatile(
+  "OCR2A = 179\n\t"
+  "BUFFER_SIZE = 131\n\t"
+  "\n\t"
+  "       ;; segun\n\t"
+  "       ;; http://www.nongnu.org/avr-libc/user-manual/FAQ.html#faq_reg_usage\n\t"
+  "       ;; r18-r27 y r30-r31 estan disponibles, y r0.\n\t"
+  "       lds r24,i               ; r24 := i\n\t"
+  "       subi r24,lo8(-(1))      ; r24++\n\t"
+  "\n\t"
+  "       lds r30,sample_pointer  ; Z := sample_pointer\n\t"
+  "       lds r31,sample_pointer+1\n\t"
+  "       ld r25,Z+               ; r25 := *sample_pointer\n\t"
+  "\n\t"
+  "       ldi r26,lo8(buffer)     ; r27:r26 := buffer\n\t"
+  "       ldi r27,hi8(buffer)\n\t"
+  "\n\t"
+  "       ;; Aca tenemos todos los valores que podemos necesitar:\n\t"
+  "       ;; i (incrementado) en r24\n\t"
+  "       ;; sample_pointer (incrementado) en Z\n\t"
+  "       ;; *sample_pointer en r25\n\t"
+  "       ;; buffer en r27:r26\n\t"
+  "\n\t"
+  "       cpi r24,lo8(2)          ; i == 2?\n\t"
+  "       brne 1f                 ; si i == 2, seguimos. 1 ciclo\n\t"
+  "       sts i,__zero_reg__      ; 1 ciclo   total 2\n\t"
+  "       sts OCR2A,r25           ; 1 ciclo   total 3\n\t"
+  // one line and two cycles of debug code
+  // "       sts samples_spat_out_by_asm, r25\n\t"
+  "       ;; BORRAMOS la copia de i en r24 para reutilizarlo:\n\t"
+  "       ldi r24,hi8(buffer+BUFFER_SIZE)\n\t"
+  "                               ; 1 ciclo   total 4\n\t"
+  "       cpi r30,lo8(buffer+BUFFER_SIZE)\n\t"
+  "                               ; 1 ciclo   total 5\n\t"
+  "       cpc r31,r24             ; Z == buffer+BUFFER_SIZE?\n\t"
+  "                               ; 1 ciclo   total 6\n\t"
+  "       breq 2f                 ; si Z != buffer+BUFFER_SIZE, seguimos\n\t"
+  "                               ; 1 ciclo   total 7\n\t"
+  "       sts sample_pointer+1,r31 ; 2 ciclos total 9\n\t"
+  "       sts sample_pointer,r30  ; 2 ciclos  total 11\n\t"
+  "       nop                     ; 1 ciclo   total 12\n\t"
+  "       ret\n\t"
+  "\n\t"
+  "       ;; Caso en que reseteamos sample_pointer:\n\t"
+  "2:                             ; 2 ciclos por haber saltado  total 8\n\t"
+  "       sts sample_pointer+1,r27; 2 ciclos  total 10\n\t"
+  "       sts sample_pointer,r26  ; 2 ciclos  total 12\n\t"
+  "       ret\n\t"
+  "\n\t"
+  "       ;; Caso en que no emitimos ninguna muestra:\n\t"
+  "1:                             ; 2 ciclos por haber saltado  total 2\n\t"
+  "       sts i,r24               ; 2 ciclos  total 4\n\t"
+  "       rjmp .+0                ; 2 ciclos  total 6\n\t"
+  "       rjmp .+0                ; 2 ciclos  total 8\n\t"
+  "       rjmp .+0                ; 2 ciclos  total 10\n\t"
+  "       rjmp .+0                ; 2 ciclos  total 12\n\t"
+  // two cycles of debug code
+  // "       rjmp .+0\n\t"
+  "       ret\n\t"
+  : :);
+}
+
+#endif
 
 // This stays interesting for ten minutes or so at least,
 // and repeats about every twenty:
