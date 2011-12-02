@@ -177,13 +177,21 @@ void setup() {
 void loop() {
   //TV.clear_screen();
 
-  TV.print(sample_pointer - buffer);
-  TV.print(' ');
-  TV.print(int(samples_spat_out_by_asm));
+  TV.print(int((unsigned char)buffer[0]), 16);
   TV.print(' ');
 
-  for (char i = 10; i < height; i++) {
-    TV.fill_line(i, width/2 - buffer[i]/8, width/2 + buffer[i]/8, 1);
+  for (unsigned char i = 10; i < height; i++) {
+    TV.fill_line(i, 
+		 width/4 - buffer[i]/8, 
+		 width/4 + buffer[i]/8, 
+		 2);
+  }
+
+  for (unsigned char i = height + 10; i < 2 * height; i++) {
+    TV.fill_line(i - height, 
+		 width/2 + width/4 - buffer[i]/8, 
+		 width/2 + width/4 + buffer[i]/8, 
+		 2);
   }
 }
 
