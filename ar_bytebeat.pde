@@ -122,6 +122,7 @@ static inline char phase_rhythm() {
 
 void our_vbi_hook() {
   for (int j = 0; j < BUFFER_SIZE; j++) {
+    char f;
     buffer[j] = //t*(((t>>12)|(t>>8))&(63&(t>>4)));
       // this works okay and has an interesting rhythm, but I
       // wonder if it may be better off without the second line
@@ -149,6 +150,12 @@ void our_vbi_hook() {
       // (t<<1 ^ (t + (t >> 8))) | t >> 2 | (char(t>>15^t>>16^0x75)>>(7&t>>10)&1?0:-1);
       // The same rhythm generator, with Ryg's Chaos Theory melody instead:
       // t*2*(char((t>>10)^(t>>10)-2)%11) | t >> 2 | (char(t>>15^t>>16^0x75)>>(7&t>>10)&1?0:-1);
+      // a sort of salsa beat; this one has some kind of incompatibility with JS:
+      // (t*t>>(4-((t>>14)&7)))*t|(t&t-(2047&~(t>>7)))>>5|t>>3;
+      // A triangle wave!
+      // 8*t & 0x100 ? -8*t-1 : 8*t;
+      // triangle-wave bells:
+      // (f = ((t >> 11) % 63 ^ (0x15 + t >> 12)) %10*2%13*4, ((((t * f & 256) == 0) - 1 ^ t * f) & 255) >> ((t >> 7 + (t >> 13 & 1)) & 7));
     t++;
   }
   if (BUFFER_SIZE < 128) t += 128 - BUFFER_SIZE;
@@ -177,20 +184,14 @@ void setup() {
 void loop() {
   //TV.clear_screen();
 
-  TV.print(int((unsigned char)buffer[0]), 16);
-  TV.print(' ');
+  //TV.print(int((unsigned char)buffer[0]), 16);
+  //TV.print(' ');
 
   for (unsigned char i = 10; i < height; i++) {
+    TV.fill_line(i, 0, width-1, 0);
     TV.fill_line(i, 
-		 width/4 - buffer[i]/8, 
-		 width/4 + buffer[i]/8, 
-		 2);
-  }
-
-  for (unsigned char i = height + 10; i < 2 * height; i++) {
-    TV.fill_line(i - height, 
-		 width/2 + width/4 - buffer[i]/8, 
-		 width/2 + width/4 + buffer[i]/8, 
+		 width/2 - buffer[i]/4, 
+		 width/2 + buffer[i]/4, 
 		 2);
   }
 }
