@@ -110,7 +110,7 @@ void our_hbi_hook()
 
 // This stays interesting for ten minutes or so at least,
 // and repeats about every twenty:
-static inline char phase_rhythm() {
+static inline char crowd() {
   // unoptimized formula:
   // ((t<<1)^((t<<1)+(t>>7)&t>>12))|t>>(4-(1^7&(t>>19)))|t>>7
   unsigned ut = unsigned(t);
@@ -137,7 +137,7 @@ void our_vbi_hook() {
       // char(char(t)<<(7&(t>>12)))+(t<<1)&t>>9|t+(t>>10)>>9;
       // This is a microcontroller-friendly way to do t^t%255:
       // t ^ (char(t) + char(int(t) >> 8));
-      phase_rhythm();
+      crowd();
       // one of these two branches is too slow with longs:
       // ((t&4096)?((t*(t^t%255)|(t>>4))>>1):(t>>3)|((t&8192)?t<<2:t));
       // this one is still too slow:
