@@ -120,9 +120,16 @@ static inline char crowd() {
   return (t1 ^ (t1 + t7 & t12)) | ut >> (4 - (1 ^ 7 & char(t12 >> 7))) | t7;
 }
 
+static inline char triangle_bells() {
+  char f = (unsigned char)((unsigned char)(t >> 11) % 63 ^ (0x15 + t >> 12)) %10*2%13*4;
+  // unoptimized formula:
+  // return (f = ((t >> 11) % 63 ^ (0x15 + t >> 12)) %10*2%13*4, ((((t * f & 256) == 0) - 1 ^ t * f) & 255) >> ((t >> 7 + (t >> 13 & 1)) & 7));
+  unsigned short ust = t;
+  return (((((ust * f & 256) == 0) - 1 ^ ust * f) & 255) >> ((ust >> 7 + (ust >> 13 & 1)) & 7));
+}
+  
 void our_vbi_hook() {
   for (int j = 0; j < BUFFER_SIZE; j++) {
-    char f;
     buffer[j] = //t*(((t>>12)|(t>>8))&(63&(t>>4)));
       // this works okay and has an interesting rhythm, but I
       // wonder if it may be better off without the second line
@@ -137,7 +144,7 @@ void our_vbi_hook() {
       // char(char(t)<<(7&(t>>12)))+(t<<1)&t>>9|t+(t>>10)>>9;
       // This is a microcontroller-friendly way to do t^t%255:
       // t ^ (char(t) + char(int(t) >> 8));
-      crowd();
+      // crowd();
       // one of these two branches is too slow with longs:
       // ((t&4096)?((t*(t^t%255)|(t>>4))>>1):(t>>3)|((t&8192)?t<<2:t));
       // this one is still too slow:
@@ -154,8 +161,7 @@ void our_vbi_hook() {
       // (t*t>>(4-((t>>14)&7)))*t|(t&t-(2047&~(t>>7)))>>5|t>>3;
       // A triangle wave!
       // 8*t & 0x100 ? -8*t-1 : 8*t;
-      // triangle-wave bells:
-      // (f = ((t >> 11) % 63 ^ (0x15 + t >> 12)) %10*2%13*4, ((((t * f & 256) == 0) - 1 ^ t * f) & 255) >> ((t >> 7 + (t >> 13 & 1)) & 7));
+      triangle_bells();
     t++;
   }
   if (BUFFER_SIZE < 128) t += 128 - BUFFER_SIZE;
