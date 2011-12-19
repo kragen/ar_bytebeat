@@ -181,8 +181,8 @@ void loop()
     TV.fill_line(i, 0, width, 0);
     TV.screen[i * width/8] = sample;
     TV.fill_line(i,
-		 width/2 - sample*7/32,
-		 width/2 + sample*7/32,
+		 width/2 - sample*5/32,
+		 width/2 + sample*5/32,
 		 1);
   }
 }
