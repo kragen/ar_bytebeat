@@ -9,7 +9,7 @@ long t = 0;
 char i = 0;
 
 const int buffer_log_size = 7;
-static char buffer[1 << buffer_log_size];
+static unsigned char buffer[1 << buffer_log_size];
 typedef unsigned char bufidx;
 static bufidx front = 0;
 static volatile bufidx rear = 0;
@@ -92,6 +92,7 @@ static inline char triangle_bells()
 void generate_samples()
 {
   for (;;) {
+    char ft;
     char sample = //t*(((t>>12)|(t>>8))&(63&(t>>4)));
       // This works okay and has an interesting rhythm, but I
       // wonder if it may be better off without the second line
@@ -135,7 +136,13 @@ void generate_samples()
       // (t*5&t>>7)|(t*3&t>>10);
       // Nice and rhythmic and interesting:
       // (t>>6|t<<1)+(t>>5|t<<3|t>>3)|t>>2|t<<1;
-      triangle_bells();
+      // triangle_bells();
+      // Simple reflected binary Gray code:
+      // t ^ t >> 1;
+      // pseudo-sinewave:
+      // ((t & 15) * (-t & 15) ^ !(t & 16) - 1) + 128;
+      // pseudo-sinewave bells:
+      (ft = t * (1 + (t >> 13 & 3 ^ t >> 18 & 3 ^ 1) << (t >> 15 & 1)), (((ft & 15) * (-ft & 15) ^ !(ft & 16) - 1) >> (t >> (7 + (t >> 13 & 3 ^ 1)) & 7)) + 128);
     if (!put(sample)) break;
     t++;
   }
