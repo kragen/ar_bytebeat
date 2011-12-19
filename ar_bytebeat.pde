@@ -1,7 +1,5 @@
 #include <TVout.h>
 #include <fontALL.h>
-#include "schematic.h"
-#include "TVOlogo.h"
 #include "wiring_private.h"
 #undef round
 
