@@ -177,7 +177,7 @@ void loop()
 
   for (unsigned char i = 10; i < height; i++) {
     generate_samples();
-    TV.fill_line(i, 0, width-1, 0);
+    TV.fill_line(i, 0, width, 0);
     TV.screen[i * width/8] = buffer[i];
     TV.fill_line(i,
 		 width/2 - buffer[i]/4,
