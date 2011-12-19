@@ -177,11 +177,12 @@ void loop()
 
   for (unsigned char i = 10; i < height; i++) {
     generate_samples();
+    char sample = buffer[i];
     TV.fill_line(i, 0, width, 0);
-    TV.screen[i * width/8] = buffer[i];
+    TV.screen[i * width/8] = sample;
     TV.fill_line(i,
-		 width/2 - buffer[i]/4,
-		 width/2 + buffer[i]/4,
+		 width/2 - sample*7/32,
+		 width/2 + sample*7/32,
 		 1);
   }
 }
